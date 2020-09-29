@@ -9,7 +9,6 @@ use App\Queries\Filters\FiltersExact;
 use App\Queries\Filters\FiltersPartial;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
  * @mixin Builder
@@ -17,7 +16,6 @@ use Illuminate\Support\Traits\ForwardsCalls;
 class QueryBuilder
 {
     use PaginationQuery;
-    use ForwardsCalls;
     use FiltersQuery;
     use SortsQuery;
 
@@ -35,12 +33,6 @@ class QueryBuilder
     {
         $this->query = $query;
         $this->request = $request ?? app(Request::class);
-    }
-
-    /** forward call function to model's query */
-    public function __call($name, $arguments)
-    {
-        return $this->forwardCallTo($this->query, $name, $arguments);
     }
 
     /**
