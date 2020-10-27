@@ -2,8 +2,8 @@
 
 namespace App\Queries;
 
+use App\Queries\Builder as CustomBuilder;
 use App\Queries\Concerns\FiltersQuery;
-use App\Queries\Concerns\PaginationQuery;
 use App\Queries\Concerns\SortsQuery;
 use App\Queries\Filters\FiltersExact;
 use App\Queries\Filters\FiltersPartial;
@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
  */
 class QueryBuilder
 {
-    use PaginationQuery;
     use FiltersQuery;
     use SortsQuery;
 
@@ -29,10 +28,25 @@ class QueryBuilder
      */
     protected $request;
 
-    public function __construct($query, ?Request $request = null)
+    protected $model;
+
+    public function __construct(?Request $request = null)
     {
-        $this->query = $query;
         $this->request = $request ?? app(Request::class);
+
+        $modelInstance = new $this->model;
+        $this->query = new CustomBuilder($modelInstance->getConnection()
+                                                       ->query());
+        $this->query->setModel($modelInstance);
+    }
+
+    /**
+     * @param int $perPage
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function get(int $perPage = 0)
+    {
+        return $perPage == 0 ? $this->query->get() : $this->query->paginate($perPage);
     }
 
     /**

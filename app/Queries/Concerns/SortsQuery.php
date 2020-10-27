@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Queries\Concerns;
 
 use App\Queries\Enums\SortDirection;
@@ -16,31 +15,28 @@ use Illuminate\Support\Str;
  */
 trait SortsQuery
 {
-
     /**
      * @var Collection
      */
-    private $allowedSorts;
+    private $exceptSorts;
 
-    public function allowSortBy($sorts = []): self
+    public function sort($excepts = []): self
     {
-        $sorts = is_array($sorts) ? $sorts : func_get_args();
-        $this->allowedSorts = collect($sorts);
+        $exceptFilters = is_array($excepts) ? $excepts : func_get_args();
+        $this->exceptSorts = collect($exceptFilters);
         $this->addSortsToQuery();
+
         return $this;
     }
 
     protected function addSortsToQuery()
     {
         $this->getSortFields()
-            ->each(function ($sortValue, $sortField) {
-                if (!$this->allowedSorts->contains($sortField)) {
-                    throw InvalidSortQuery::sortNotAllowed($sortField, $this->allowedSorts);
-                }
-                if ($this->hasSortMethod($sortField) && $sortValue) {
-                    $this->callSortMethod($sortField, $sortValue);
-                }
-            });
+             ->each(function ($sortValue, $sortField) {
+                 if (! $this->exceptSorts->contains($sortField)) {
+                     $this->callSortMethod($sortField, $sortValue);
+                 }
+             });
     }
 
     protected function parseSortDirection(string $value): string
@@ -57,29 +53,39 @@ trait SortsQuery
         if (is_string($sorts)) {
             $sorts = explode(',', $sorts);
         }
-
-        return collect($sorts)
+        $sortParams = collect($sorts)
             ->mapWithKeys(function ($item) {
                 return [ltrim($item, '-') => $this->parseSortDirection($item)];
-            });
+            })->toArray();
+
+        $sortMethods = $this->getAllSortsMethod();
+
+        // dump value to get associate array
+        $sortMethods = array_fill_keys($sortMethods, '');
+
+        // get filter available fields
+        return collect(array_intersect_key($sortParams, $sortMethods));
     }
 
     /**
-     * @param  string  $key
-     * @return bool
-     */
-    protected function hasSortMethod($key)
-    {
-        return method_exists($this, 'sortBy'.Str::studly($key));
-    }
-
-    /**
-     * @param  string  $key
-     * @param  string  $value
+     * @param string $key
+     * @param string $value
      * @return mixed
      */
-    protected function callSortMethod($key, $value)
+    protected function callSortMethod(string $key, string $value)
     {
         return $this->{'sortBy'.Str::studly($key)}($value);
+    }
+
+    public function getAllSortsMethod()
+    {
+        $methods = get_class_methods($this);
+
+        return collect($methods)
+            ->filter(function ($value) {
+                return strpos($value, 'sortBy') === 0;
+            })->map(function ($value) {
+                return strtolower(explode('sortBy', $value)[1]);
+            })->toArray();
     }
 }

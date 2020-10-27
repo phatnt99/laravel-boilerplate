@@ -9,14 +9,9 @@ class UserController extends Controller
     public function __invoke(UserQuery $query)
     {
         $response = $query
-            ->allowFilterBy([
-                'name',
-                'id',
-            ])->allowSortBy([
-                'name',
-                'created_at',
-                'id'
-            ])->allowPaginate();
+            ->filter()
+            ->sort()
+            ->get(1);
 
         return response()->json($response);
     }

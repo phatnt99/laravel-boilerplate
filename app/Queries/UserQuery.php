@@ -3,26 +3,18 @@
 namespace App\Queries;
 
 use App\Models\User;
-use App\Queries\Builder as CustomBuilder;
 
 class UserQuery extends QueryBuilder
 {
-    public function __construct()
-    {
-        // get query builder of model
-        $user = new User;
-        $query = new CustomBuilder($user->getConnection()
-                                        ->query());
-        $query->setModel($user);
-        parent::__construct($query);
-    }
+
+    protected $model = User::class;
 
     // ======================================================================
     // Filters
     // ======================================================================
     public function filterById(string $id)
     {
-        return $this->filterPartial('id', $id);
+        return $this->filterExact('id', $id);
     }
 
     public function filterByName(string $name)
