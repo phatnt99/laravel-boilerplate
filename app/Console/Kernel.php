@@ -2,8 +2,11 @@
 
 namespace App\Console;
 
+use App\Console\Commands\MakeFilterQuery;
+use App\Console\Commands\MakeSortQuery;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Console\Commands\MakeAdvancedQuery;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,13 +16,15 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        MakeAdvancedQuery::class,
+        MakeFilterQuery::class,
+        MakeSortQuery::class
     ];
 
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)

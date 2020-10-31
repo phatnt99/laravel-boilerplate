@@ -19,7 +19,7 @@ class testC extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Commands description';
 
     /**
      * Create a new command instance.

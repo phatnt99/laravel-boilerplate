@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Queries\Enums;
+namespace Phatnt99\AdvancedQuery\Enums;
 
 final class SortDirection
 {

@@ -1,18 +1,47 @@
 <?php
 
-
 namespace App\Queries\Filters;
 
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
-use Illuminate\Database\Eloquent\Builder;
-
-interface Filter
+abstract class Filter
 {
+    protected $attributes = [];
+
+    protected $model = Model::class;
+
+    protected $query;
+
     /**
-     * @param  Builder  $query
-     * @param  string  $property
-     * @param  mixed  $value
-     * @return Builder
+     * Filter constructor.
      */
-    public static function apply(Builder $query, $property, $value);
+    public function __construct()
+    {
+        $this->query = User::query();
+    }
+
+    public abstract function attributes();
+
+    public function convert()
+    {
+        $filterable = array_intersect_key($this->attributes(), $this->attributes);
+
+        foreach ($filterable as $filter => $callback) {
+            ($callback)($this->query, $filter, Arr::get($this->attributes, $filter));
+        }
+
+        return $this->query->get();
+    }
+
+    public function filter(Request $request) {
+        $this->addRequestParamsToFilter($request);
+        return $this->convert();
+    }
+
+    public function addRequestParamsToFilter(Request $request) {
+        $this->attributes = $request->input('filters', []);
+    }
 }
